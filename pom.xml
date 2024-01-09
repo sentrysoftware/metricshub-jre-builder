@@ -4,7 +4,7 @@
 
 	<groupId>org.sentrysoftware</groupId>
 	<artifactId>metricshub-jre-builder</artifactId>
-	<version>1.0.00</version>
+	<version>1.1.00-SNAPSHOT</version>
 	<name>MetricsHub JRE Builder</name>
 
 	<packaging>pom</packaging>
@@ -14,7 +14,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.build.outputTimestamp>2024-01-09T16:58:11Z</project.build.outputTimestamp>
+		<project.build.outputTimestamp>2024-01-09T16:58:23Z</project.build.outputTimestamp>
 	</properties>
 
 	<organization>
@@ -38,7 +38,7 @@
 	<scm>
 		<connection>scm:git:https://github.com/sentrysoftware/metricshub-jre-builder.git</connection>
 		<url>https://maven.pkg.github.com/sentrysoftware/metricshub-jre-builder</url>
-		<tag>v1.0.00</tag>
+		<tag>HEAD</tag>
 	</scm>
 
 	<licenses>

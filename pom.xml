@@ -178,17 +178,6 @@
 						<tagNameFormat>v@{project.version}</tagNameFormat>
 						<autoVersionSubmodules>true</autoVersionSubmodules>
 					</configuration>
-					<executions>
-						<execution>
-							<id>default</id>
-							<goals>
-								<goal>prepare</goal>
-							</goals>
-							<configuration>
-								<preparationProfiles>windows,linux</preparationProfiles>
-							</configuration>
-						</execution>
-					</executions>
 				</plugin>
 			</plugins>
 		</pluginManagement>

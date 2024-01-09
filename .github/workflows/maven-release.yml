@@ -145,9 +145,9 @@ jobs:
       with:
         detached: true
 
-  #   - uses: actions/download-artifact@v4
-  #     with:
-  #       name: release.properties
+    - uses: actions/download-artifact@v4
+      with:
+        name: release.properties
 
   #   - name: Perform release to GitHub Packages
   #     id: perform

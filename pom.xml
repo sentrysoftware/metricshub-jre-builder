@@ -177,6 +177,7 @@
 					<configuration>
 						<tagNameFormat>v@{project.version}</tagNameFormat>
 						<autoVersionSubmodules>true</autoVersionSubmodules>
+						<preparationProfiles>windows,linux</preparationProfiles>
 					</configuration>
 				</plugin>
 			</plugins>

@@ -153,6 +153,7 @@ jobs:
           -DworkingDirectory=$GITHUB_WORKSPACE/target/release \
           -DreleaseVersion=${{ inputs.releaseVersion }} \
           -DdevelopmentVersion=${{ inputs.developmentVersion }} \
+          -s $GITHUB_WORKSPACE/settings.xml
       env:
         GITHUB_TOKEN: ${{ github.token }}
 

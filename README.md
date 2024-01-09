@@ -1,8 +1,8 @@
 # MetricsHub JRE Builder
 
-## Structure
+This multi-module Maven project uses the [Maven JLink Plugin](https://maven.apache.org/plugins/maven-jlink-plugin/) to produce two separate JREs: one specifically designed for Windows and another for Linux. The Windows JRE will be integrated into the MetricsHub Windows distribution, while the Linux JRE is to be integrated into both MetricsHub RHEL and Debian distributions.
 
-This is a multi-module project:
+## Structure
 
 * **/**: the root (parent of all submodules)
 * **metricshub-jre-windows**: Builds a Windows JRE specifically tailored for MetricsHub, which is then integrated into the MetricsHub Windows distribution.
@@ -48,4 +48,34 @@ To deploy MetricsHub JREs to your remote or local repository, run the command be
 
 ```sh
 $ mvn clean deploy
+```
+
+## Usage
+
+To integrate the MetricsHub Windows JRE into the MetricsHub Windows distribution, add the following dependency in the `metricshub-windows` module:
+
+```xml
+	<dependency>
+		<groupId>${project.groupId}</groupId>
+		<artifactId>metricshub-jre-windows</artifactId>
+		<version>${project.version}</version>
+		<type>zip</type>
+	</dependency>
+```
+
+To integrate the MetricsHub Linux JRE into the MetricsHub Linux distributions (Debian and RHEL), add the following dependency in the `metricshub-debian` and `metricshub-rhel` modules:
+
+```xml
+	<dependency>
+		<groupId>${project.groupId}</groupId>
+		<artifactId>metricshub-jre-linux</artifactId>
+		<version>${project.version}</version>
+		<type>zip</type>
+	</dependency>
+```
+
+Make sure to unzip the content of the artifact in a dedicated build directory and provide this directory content to JPackage as a runtime image:
+
+```shell
+jpackage --runtime-image jre_directory $other_jpackage_args
 ```

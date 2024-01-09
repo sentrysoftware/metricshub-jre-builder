@@ -4,15 +4,19 @@
 
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>com.sentrysoftware.metricshub</groupId>
+	<groupId>org.sentrysoftware</groupId>
 	<artifactId>metricshub-jre-builder</artifactId>
 	<version>1.0.00-SNAPSHOT</version>
 	<name>MetricsHub JRE Builder</name>
-	<url>https://github.com/sentrysoftware/metricshub-jre-builder</url>
+
 	<packaging>pom</packaging>
+
+	<url>https://github.com/sentrysoftware/metricshub-jre-builder</url>
+	<inceptionYear>2023</inceptionYear>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.build.outputTimestamp>2023-10-25T22:28:48Z</project.build.outputTimestamp>
 	</properties>
 
 	<organization>
@@ -33,6 +37,20 @@
 		<url>https://github.com/sentrysoftware/metricshub-jre-builder/issues/</url>
 	</issueManagement>
 
+	<scm>
+		<connection>scm:git:https://github.com/sentrysoftware/metricshub-jre-builder.git</connection>
+		<url>https://maven.pkg.github.com/sentrysoftware/metricshub-jre-builder</url>
+		<tag>HEAD</tag>
+	</scm>
+
+	<licenses>
+		<license>
+			<name>Apache-2.0</name>
+			<url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
 	<developers>
 		<developer>
 			<name>Bertrand Martin (@bertysentry)</name>
@@ -49,11 +67,6 @@
 			</roles>
 		</developer>
 	</developers>
-
-	<scm>
-		<connection>scm:git:https://github.com/sentrysoftware/metricshub-jre-builder.git</connection>
-		<url>https://maven.pkg.github.com/sentrysoftware/metricshub-jre-builder</url>
-	</scm>
 
 	<profiles>
 		<profile>
@@ -78,9 +91,32 @@
 				<module>metricshub-jre-linux</module>
 			</modules>
 		</profile>
+
 	</profiles>
 
 	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-deploy-plugin</artifactId>
+			</plugin>
+			<!-- artifact (Reproducible Build) -->
+			<plugin>
+				<artifactId>maven-artifact-plugin</artifactId>
+				<version>3.5.0</version>
+				<executions>
+					<execution>
+						<id>buildinfo</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>buildinfo</goal>
+						</goals>
+						<configuration>
+							<reproducible>true</reproducible>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
 		<pluginManagement>
 			<plugins>
 				<plugin>
@@ -132,8 +168,17 @@
 					<artifactId>maven-deploy-plugin</artifactId>
 					<version>3.1.1</version>
 				</plugin>
+				<!-- release -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-release-plugin</artifactId>
+					<version>3.0.1</version>
+					<configuration>
+						<tagNameFormat>v@{project.version}</tagNameFormat>
+						<autoVersionSubmodules>true</autoVersionSubmodules>
+					</configuration>
+				</plugin>
 			</plugins>
 		</pluginManagement>
 	</build>
-
 </project>

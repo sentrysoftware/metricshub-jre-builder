@@ -30,7 +30,7 @@ jobs:
         settings-path: ${{ github.workspace }} # location for the settings.xml file
 
     - name: Build and Deploy from ubuntu-latest
-      run: mvn -B deploy --file pom.xml -s $GITHUB_WORKSPACE/settings.xml
+      run: mvn -B deploy
       env:
         GITHUB_TOKEN: ${{ github.token }}
     # Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
@@ -58,7 +58,7 @@ jobs:
         settings-path: ${{ github.workspace }} # location for the settings.xml file
 
     - name: Build and Deploy from windows-latest
-      run: mvn -B deploy --file pom.xml -s %GITHUB_WORKSPACE%/settings.xml
+      run: mvn -B deploy
       env:
         GITHUB_TOKEN: ${{ github.token }}
 

@@ -128,11 +128,6 @@ jobs:
     
     steps:
 
-    - name: Setup tmate SSH session
-      uses: mxschmitt/action-tmate@v3
-      with:
-        detached: true
-
     - uses: actions/checkout@v4
     
     - name: Set up JDK 17

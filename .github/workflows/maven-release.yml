@@ -104,11 +104,6 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ github.token }}
 
-    - name: Setup tmate SSH session
-      uses: mxschmitt/action-tmate@v3
-      with:
-        detached: true
-
     - uses: actions/upload-artifact@v4
       with:
         name: release.properties

@@ -128,6 +128,11 @@ jobs:
     
     steps:
 
+    - name: Setup tmate SSH session
+      uses: mxschmitt/action-tmate@v3
+      with:
+        detached: true
+  
     - uses: actions/checkout@v4
     
     - name: Set up JDK 17
@@ -176,6 +181,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ prepare, release ]
     steps:
+
+    - uses: actions/checkout@v4
 
     - uses: actions/download-artifact@v4
       with:

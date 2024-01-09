@@ -146,7 +146,6 @@ jobs:
 
     - name: Setup tmate SSH session
       uses: mxschmitt/action-tmate@v3
-      if: ${{ inputs.ssh == 'true' }}
       with:
         detached: true
 

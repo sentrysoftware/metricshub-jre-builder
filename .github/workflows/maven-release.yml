@@ -128,7 +128,9 @@ jobs:
         INPUT_RELEASEVERSION: ${{ inputs.releaseVersion }}
 
     - name: Checkout ${{ env.branchName }} branch
-      run: git checkout ${{ env.branchName }} 2>/dev/null
+      run: |
+        git fetch
+        git checkout ${{ env.branchName }} 2>/dev/null
 
     - name: Prepare release
       id: prepare

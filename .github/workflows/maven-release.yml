@@ -109,8 +109,13 @@ jobs:
           release:rollback \
       if: always() && (steps.prepare.outcome == 'failure')
 
+    - uses: actions/upload-artifact@v4
+      with:
+        name: release.properties
+        path: release.properties
+
   release:
-    name: Release v${{ inputs.releaseVersion }}
+    name: Release v${{ inputs.releaseVersion }} on ${{ matrix.os }}
 
     needs: prepare
 
@@ -133,6 +138,10 @@ jobs:
         cache: maven
         server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
         settings-path: ${{ github.workspace }} # location for the settings.xml file
+
+    - uses: actions/download-artifact@v4
+      with:
+        name: release.properties
 
     - name: Perform release to GitHub Packages
       id: perform

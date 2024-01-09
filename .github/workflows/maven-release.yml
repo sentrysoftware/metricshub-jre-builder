@@ -144,7 +144,7 @@ jobs:
       with:
         name: release.properties
 
-    - name: Update release.properties for ${{ os.matrix }}
+    - name: Update release.properties for ${{ matrix.os }}
       run: sed -i 's/-linux/-windows/g' release.properties
       if: matrix.os == 'windows-latest'
 

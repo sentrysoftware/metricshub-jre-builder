@@ -91,63 +91,68 @@ jobs:
         git tag -d ${{ env.tagName }} || true
         git push origin :refs/tags/${{ env.tagName }} || true
 
-    - name: Prepare release
-      id: prepare
-      run: |
-        mvn -B -U \
-          release:clean \
-          release:prepare \
-          -DpreparationGoals="clean verify" \
-          -DreleaseVersion=${{ inputs.releaseVersion }} \
-          -DdevelopmentVersion=${{ inputs.developmentVersion }} \
-          -Dresume=false
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
-
-    - name: Release rollback on failure
-      run: |
-        mvn -B -U \
-          release:rollback \
-      if: always() && (steps.prepare.outcome == 'failure')
-
-    - uses: actions/upload-artifact@v4
-      with:
-        name: release.properties
-        path: release.properties
-
-  release:
-    name: Release v${{ inputs.releaseVersion }} on ${{ matrix.os }}
-
-    needs: prepare
-
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        os: [ ubuntu-latest, windows-latest ]
-    
-    steps:
-
-    - uses: actions/checkout@v4
-    
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: "17"
-        distribution: temurin
-        java-package: jdk
-        cache: maven
-        server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
-        settings-path: ${{ github.workspace }} # location for the settings.xml file
-
     - name: Setup tmate SSH session
       uses: mxschmitt/action-tmate@v3
       with:
         detached: true
 
-    - uses: actions/download-artifact@v4
-      with:
-        name: release.properties
+  #   - name: Prepare release
+  #     id: prepare
+  #     run: |
+  #       mvn -B -U \
+  #         release:clean \
+  #         release:prepare \
+  #         -DpreparationGoals="clean verify" \
+  #         -DreleaseVersion=${{ inputs.releaseVersion }} \
+  #         -DdevelopmentVersion=${{ inputs.developmentVersion }} \
+  #         -Dresume=false
+  #     env:
+  #       GITHUB_TOKEN: ${{ github.token }}
+
+  #   - name: Release rollback on failure
+  #     run: |
+  #       mvn -B -U \
+  #         release:rollback \
+  #     if: always() && (steps.prepare.outcome == 'failure')
+
+  #   - uses: actions/upload-artifact@v4
+  #     with:
+  #       name: release.properties
+  #       path: release.properties
+
+  # release:
+  #   name: Release v${{ inputs.releaseVersion }} on ${{ matrix.os }}
+
+  #   needs: prepare
+
+  #   runs-on: ${{ matrix.os }}
+
+  #   strategy:
+  #     matrix:
+  #       os: [ ubuntu-latest, windows-latest ]
+    
+  #   steps:
+
+  #   - uses: actions/checkout@v4
+    
+  #   - name: Set up JDK 17
+  #     uses: actions/setup-java@v4
+  #     with:
+  #       java-version: "17"
+  #       distribution: temurin
+  #       java-package: jdk
+  #       cache: maven
+  #       server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
+  #       settings-path: ${{ github.workspace }} # location for the settings.xml file
+
+  #   - name: Setup tmate SSH session
+  #     uses: mxschmitt/action-tmate@v3
+  #     with:
+  #       detached: true
+
+  #   - uses: actions/download-artifact@v4
+  #     with:
+  #       name: release.properties
 
   #   - name: Perform release to GitHub Packages
   #     id: perform

@@ -100,7 +100,6 @@ jobs:
           -DpreparationGoals="clean verify" \
           -DreleaseVersion=${{ inputs.releaseVersion }} \
           -DdevelopmentVersion=${{ inputs.developmentVersion }} \
-          -DpreparationProfiles=linux,windows
           -Dresume=false
       env:
         GITHUB_TOKEN: ${{ github.token }}

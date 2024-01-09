@@ -95,7 +95,7 @@ jobs:
       run: |
         mvn versions:set -DnewVersion=${{ inputs.releaseVersion }}
         mvn versions:commit
-        git add *.pom.xml
+        git add pom.xml metricshub-jre-linux/pom.xml metricshub-jre-windows/pom.xml
         git commit -m "Updated POM version to ${{ inputs.releaseVersion }}"
       env:
         GITHUB_TOKEN: ${{ github.token }}
@@ -112,7 +112,7 @@ jobs:
       run: |
         mvn versions:set -DnewVersion=${{ inputs.developmentVersion }}
         mvn versions:commit
-        git add *.pom.xml
+        git add pom.xml metricshub-jre-linux/pom.xml metricshub-jre-windows/pom.xml
         git commit -m "Updated POM version to ${{ inputs.developmentVersion }}"
       env:
         GITHUB_TOKEN: ${{ github.token }}

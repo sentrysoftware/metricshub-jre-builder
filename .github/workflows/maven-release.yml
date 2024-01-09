@@ -91,10 +91,10 @@ jobs:
         git tag -d ${{ env.tagName }} || true
         git push origin :refs/tags/${{ env.tagName }} || true
 
-    - name: Setup tmate SSH session
-      uses: mxschmitt/action-tmate@v3
-      with:
-        detached: true
+    # - name: Setup tmate SSH session
+    #   uses: mxschmitt/action-tmate@v3
+    #   with:
+    #     detached: true
 
     # - uses: actions/upload-artifact@v4
     #   with:

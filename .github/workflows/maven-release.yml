@@ -127,11 +127,6 @@ jobs:
         os: [ ubuntu-latest, windows-latest ]
     
     steps:
-
-    - name: Setup tmate SSH session
-      uses: mxschmitt/action-tmate@v3
-      with:
-        detached: true
   
     - uses: actions/checkout@v4
     
@@ -173,7 +168,8 @@ jobs:
         name: jre-${{ matrix.os }}
         path: |
           ./target/release/target/*.buildinfo
-          ./metricshub-jre-*/target/release/target/*.zip
+          ./target/release/metricshub-jre-*/target/*.zip
+          ./target/release/metricshub-jre-*/target/*.buildinfo
 
   # Finalize job
   finalize:

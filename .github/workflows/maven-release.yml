@@ -168,9 +168,11 @@ jobs:
           echo "versionId=$(grep -B1 '"name": "${{ inputs.releaseVersion }}"' $HOME/versionIds.json | grep '"id":' | awk -F': ' '{print $2}' | tr -d ',')" >> $GITHUB_ENV
       env:
         GITHUB_TOKEN: ${{ github.token }}
+      if: always() && (steps.perform.outcome == 'failure')
 
-    - name: Print Version ID
+    - name: Deployed Version ID
       run: echo "The deployed Version ID is ${{ env.versionId }}"
+      if: always() && (steps.perform.outcome == 'failure')
 
     - name: Package ${{ inputs.releaseVersion }} removal on failure
       uses: actions/delete-package-versions@v4

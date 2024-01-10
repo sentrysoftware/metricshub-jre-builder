@@ -135,11 +135,6 @@ jobs:
     
     steps:
 
-    - name: Setup tmate SSH session
-      uses: mxschmitt/action-tmate@v3
-      with:
-        detached: true
-
     - uses: actions/checkout@v4
     
     - name: Set up JDK 17
@@ -152,10 +147,10 @@ jobs:
         server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
         settings-path: ${{ github.workspace }} # location for the settings.xml file
 
-    - name: Checkout ${{ needs.prepare.output.tagName }} branch
+    - name: Checkout ${{ needs.prepare.outputs.tagName }} branch
       run: |
         git fetch
-        git checkout ${{ needs.prepare.output.tagName }} 2>/dev/null
+        git checkout ${{ needs.prepare.outputs.tagName }} 2>/dev/null
 
     - name: Perform release to GitHub Packages
       id: perform

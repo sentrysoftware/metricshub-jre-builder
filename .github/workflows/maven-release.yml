@@ -129,7 +129,6 @@ jobs:
 
     strategy:
       matrix:
-        os: [ ubuntu-latest, windows-latest ]
         config:
         - { os: ubuntu-latest, packageSuffix: linux }
         - { os: windows-latest, packageSuffix: windows }

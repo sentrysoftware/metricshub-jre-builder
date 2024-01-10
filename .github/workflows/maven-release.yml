@@ -176,7 +176,7 @@ jobs:
   finalize:
     name: Finalize release
     runs-on: ubuntu-latest
-    needs: [ prepare, prepare-os-release, release ]
+    needs: [ prepare, release ]
     steps:
 
     - uses: actions/checkout@v4

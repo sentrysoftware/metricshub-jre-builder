@@ -4,7 +4,7 @@
 
 	<groupId>org.sentrysoftware</groupId>
 	<artifactId>metricshub-jre-builder</artifactId>
-	<version>1.0.00-SNAPSHOT</version>
+	<version>1.0.00</version>
 	<name>MetricsHub JRE Builder</name>
 
 	<packaging>pom</packaging>
@@ -14,7 +14,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.build.outputTimestamp>2024-01-09T17:32:03Z</project.build.outputTimestamp>
+		<project.build.outputTimestamp>2024-01-10T10:26:22Z</project.build.outputTimestamp>
 	</properties>
 
 	<organization>

@@ -121,11 +121,11 @@ jobs:
         git push origin ${{ env.branchName }}
 
   release:
-    name: Release v${{ inputs.releaseVersion }} on ${{ matrix.os }}
+    name: Release v${{ inputs.releaseVersion }} on ${{ matrix.config.os }}
 
     needs: prepare
 
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.config.os }}
 
     strategy:
       matrix:
@@ -171,7 +171,7 @@ jobs:
 
     - uses: actions/upload-artifact@v4
       with:
-        name: jre-${{ matrix.os }}
+        name: jre-${{ matrix.config.os }}
         path: |
           ./target/*.buildinfo
           ./target/metricshub-jre-*/target/*.zip

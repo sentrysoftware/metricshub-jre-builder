@@ -91,47 +91,41 @@ jobs:
         git tag -d ${{ env.tagName }} || true
         git push origin :refs/tags/${{ env.tagName }} || true
 
-    - name: Update project version to ${{ inputs.releaseVersion }}
+    - name: Prepare release
+      id: prepare
       run: |
-        mvn versions:set -DnewVersion=${{ inputs.releaseVersion }}
-        mvn versions:commit
+        mvn -B -U \
+          -Prelease
+          release:clean \
+          release:prepare \
+          -DpreparationGoals="clean verify" \
+          -DreleaseVersion=${{ inputs.releaseVersion }} \
+          -DdevelopmentVersion=${{ inputs.developmentVersion }} \
+          -Dresume=false
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
 
-    - name: Commit ${{ inputs.releaseVersion }}
+    - name: Release rollback on failure
       run: |
-        git add pom.xml metricshub-jre-linux/pom.xml metricshub-jre-windows/pom.xml
-        git commit -m "Updated POM version to ${{ inputs.releaseVersion }}"
-
-    - name: Create tag ${{ env.tagName }}
-      run: |
-        git tag -a ${{ env.tagName }} -m "Release ${{ env.tagName }}"
-
-    - name: Push tag ${{ env.tagName }}
-      run: |
-        git push origin ${{ env.tagName }}
-
-    - name: Prepare next version ${{ inputs.developmentVersion }}
-      run: |
-        mvn versions:set -DnewVersion=${{ inputs.developmentVersion }}
-        mvn versions:commit
-        git add pom.xml metricshub-jre-linux/pom.xml metricshub-jre-windows/pom.xml
-        git commit -m "Updated POM version to ${{ inputs.developmentVersion }}"
-
-    - name: Push next version ${{ inputs.developmentVersion }}"
-      run: |
-        git push origin ${{ env.branchName }}
+        mvn -B -U \
+          release:rollback \
+      if: always() && (steps.prepare.outcome == 'failure')
+    
+    - uses: actions/upload-artifact@v4
+      with:
+        name: release-${{ matrix.os }}.properties
+        path: release.properties
 
   release:
-    name: Release v${{ inputs.releaseVersion }} on ${{ matrix.config.os }}
+    name: Release v${{ inputs.releaseVersion }} on ${{ matrix.os }}
 
     needs: prepare
 
-    runs-on: ${{ matrix.config.os }}
+    runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
-        config:
-        - { os: ubuntu-latest, packageSuffix: linux }
-        - { os: windows-latest, packageSuffix: windows }
+        os: [ ubuntu-latest, windows-latest ]
     
     steps:
 
@@ -147,54 +141,42 @@ jobs:
         server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
         settings-path: ${{ github.workspace }} # location for the settings.xml file
 
-    - name: Checkout ${{ needs.prepare.outputs.tagName }} branch
-      run: |
-        git fetch
-        git checkout ${{ needs.prepare.outputs.tagName }} 2>/dev/null
+    - uses: actions/download-artifact@v4
+      with:
+        name: release-${{ matrix.os }}.properties
 
     - name: Perform release to GitHub Packages
       id: perform
       run: |
         mvn -B -U \
-          clean deploy \
+          release:perform \
+          -Dgoals=deploy \
+          -DworkingDirectory=$GITHUB_WORKSPACE/target/release \
+          -DreleaseVersion=${{ inputs.releaseVersion }} \
+          -DdevelopmentVersion=${{ inputs.developmentVersion }} \
           -s $GITHUB_WORKSPACE/settings.xml
       env:
         GITHUB_TOKEN: ${{ github.token }}
 
-    - name: Get Deployed Package Version ID from Versions List
-      id: version-id
+    - name: Release rollback on failure
       run: |
-        curl -X GET -H "Authorization: Bearer ${{env.GITHUB_TOKEN}}" https://api.github.com/orgs/sentrysoftware/packages/maven/org.sentrysoftware.metricshub-jre-${{ matrix.config.packageSuffix }}/versions >> $HOME/versionIds.json
-          echo "versionId=$(grep -B1 '"name": "${{ inputs.releaseVersion }}"' $HOME/versionIds.json | grep '"id":' | awk -F': ' '{print $2}' | tr -d ',')" >> $GITHUB_ENV
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
+        mvn -B -U \
+          release:rollback \
       if: always() && (steps.perform.outcome == 'failure')
-
-    - name: Deployed Version ID
-      run: echo "The deployed Version ID is ${{ env.versionId }}"
-      if: always() && (steps.perform.outcome == 'failure')
-
-    - name: Package ${{ inputs.releaseVersion }} removal on failure
-      uses: actions/delete-package-versions@v4
-      with:
-        package-version-ids: ${{ env.versionId }}
-        package-name: org.sentrysoftware.metricshub-jre-${{ matrix.config.packageSuffix }}
-        package-type: maven
-      if: always() && (steps.perform.outcome == 'failure') && (env.versionId != '')
 
     - uses: actions/upload-artifact@v4
       with:
-        name: jre-${{ matrix.config.os }}
+        name: jre-${{ matrix.os }}
         path: |
-          ./target/*.buildinfo
-          ./metricshub-jre-*/target/*.zip
-          ./metricshub-jre-*/target/*.buildinfo
+          ./target/release/target/*.buildinfo
+          ./target/release/metricshub-jre-*/target/*.zip
+          ./target/release/metricshub-jre-*/target/*.buildinfo
 
   # Finalize job
   finalize:
     name: Finalize release
     runs-on: ubuntu-latest
-    needs: [ prepare, release ]
+    needs: [ prepare, prepare-os-release, release ]
     steps:
 
     - uses: actions/checkout@v4

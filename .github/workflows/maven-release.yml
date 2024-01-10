@@ -161,21 +161,30 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ github.token }}
 
+    - name: Get Version ID from the Versions List on failure
+      id: version-id
+      run: |
+        curl -X GET -H "Authorization: Bearer ${{env.GITHUB_TOKEN}}" https://api.github.com/orgs/sentrysoftware/packages/maven/org.sentrysoftware.metricshub-jre-${{ matrix.config.packageSuffix }}/versions >> $HOME/versionIds.json
+          echo "versionId=$(jq -r '.[] | select(.name == "${{ inputs.releaseVersion }}").id' $HOME/versionIds.json)" >> $GITHUB_ENV
+      if: always() && (steps.perform.outcome == 'failure')
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+
     - name: Package ${{ inputs.releaseVersion }} removal on failure
       uses: actions/delete-package-versions@v4
       with:
-        package-version-ids: ${{ inputs.releaseVersion }}
+        package-version-ids: ${{ env.versionId }}
         package-name: org.sentrysoftware.metricshub-jre-${{ matrix.config.packageSuffix }}
         package-type: maven
-      if: always() && (steps.perform.outcome == 'failure')
+      if: always() && (steps.perform.outcome == 'failure') && (env.versionId != '')
 
     - uses: actions/upload-artifact@v4
       with:
         name: jre-${{ matrix.config.os }}
         path: |
           ./target/*.buildinfo
-          ./target/metricshub-jre-*/target/*.zip
-          ./target/metricshub-jre-*/target/*.buildinfo
+          ./metricshub-jre-*/target/*.zip
+          ./metricshub-jre-*/target/*.buildinfo
 
   # Finalize job
   finalize:
@@ -183,11 +192,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ prepare, release ]
     steps:
-
-    - name: Setup tmate SSH session
-      uses: mxschmitt/action-tmate@v3
-      with:
-        detached: true
 
     - uses: actions/checkout@v4
 

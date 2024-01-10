@@ -4,7 +4,7 @@
 
 	<groupId>org.sentrysoftware</groupId>
 	<artifactId>metricshub-jre-builder</artifactId>
-	<version>1.1.00-SNAPSHOT</version>
+	<version>1.0.00-SNAPSHOT</version>
 	<name>MetricsHub JRE Builder</name>
 
 	<packaging>pom</packaging>

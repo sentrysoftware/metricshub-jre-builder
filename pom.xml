@@ -77,6 +77,16 @@
 			<modules>
 				<module>metricshub-jre-windows</module>
 			</modules>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-deploy-plugin</artifactId>
+						<configuration>
+							<skip>true</skip>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
 		</profile>
 		<profile>
 			<id>linux</id>
@@ -96,9 +106,6 @@
 		<plugins>
 			<plugin>
 				<artifactId>maven-deploy-plugin</artifactId>
-				<configuration>
-					<skip>true</skip>
-				</configuration>
 			</plugin>
 			<!-- artifact (Reproducible Build) -->
 			<plugin>

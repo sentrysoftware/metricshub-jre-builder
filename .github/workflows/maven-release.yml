@@ -175,7 +175,7 @@ jobs:
       if: always() && (steps.perform.outcome == 'failure')
 
     - name: Package ${{ inputs.releaseVersion }} removal on failure
-      uses: actions/delete-package-versions@v4
+      uses: actions/delete-package-versions@v5
       with:
         package-version-ids: ${{ env.versionId }}
         package-name: org.sentrysoftware.metricshub-jre-${{ matrix.config.packageSuffix }}

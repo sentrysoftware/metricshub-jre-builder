@@ -10,12 +10,9 @@ env:
   JDK_VERSION: 17.0.12+7
 
 jobs:
-  build-jre:
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
+  build-jre-linux:
+    name: Build JRE on Linux
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
@@ -26,7 +23,6 @@ jobs:
       with:
         java-version: ${{ env.JDK_VERSION }}
         distribution: temurin
-        cache: maven
 
     - name: Build JRE
       run: jlink --strip-debug --no-header-files --no-man-pages --add-modules $(tr '\n' ',' < modules.txt | sed 's/,$//') --output /opt/jre

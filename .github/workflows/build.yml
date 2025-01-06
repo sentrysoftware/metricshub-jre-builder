@@ -1,0 +1,37 @@
+name: Build JRE
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+  workflow_dispatch:
+
+env:
+  JDK_VERSION: 17.0.12+7
+
+jobs:
+  build-jre:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ env.JDK_VERSION }}
+        distribution: temurin
+        cache: maven
+
+    - name: Build JRE
+      run: jlink --strip-debug --no-header-files --no-man-pages --add-modules $(tr '\n' ',' < modules.txt | sed 's/,$//') --output /opt/jre
+
+    - name: Upload JRE
+      uses: actions/upload-artifact@v2
+      with:
+        name: jre

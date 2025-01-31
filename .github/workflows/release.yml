@@ -1,0 +1,50 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - 'main'
+
+jobs:
+  build-deploy:
+    name: Build and Deploy
+    uses: ./.github/workflows/build-deploy.yml
+    with:
+      deploy: true
+
+  release:
+    name: Release
+    needs: build-deploy
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure Git User
+      run: |
+        git config user.email "actions@github.com"
+        git config user.name "GitHub Actions"
+
+    - name: Read JDK Version (Release Name)
+      run: |
+        export JDK_VERSION=$(cat .java-version)
+        echo JDK_VERSION=$JDK_VERSION >> $GITHUB_ENV
+        echo TAG_NAME=v$JDK_VERSION >> $GITHUB_ENV
+
+    - name: Clean up existing ${{ env.TAG_NAME }} tags
+      run: |
+        git tag -d ${{ env.TAG_NAME }} || true
+        git push origin :refs/tags/${{ env.TAG_NAME }} || true
+
+    - name: Create tag ${{ env.TAG_NAME }}
+      run: |
+        git tag -a ${{ env.TAG_NAME }} -m "Release ${{ env.TAG_NAME }}"
+        git push origin ${{ env.TAG_NAME }}
+
+    - name: Create a GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ env.TAG_NAME }}
+        body_path: README.md
+        make_latest: true

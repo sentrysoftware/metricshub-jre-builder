@@ -1,0 +1,174 @@
+name: Build and Deploy JRE
+
+on:
+  workflow_call:
+    inputs:
+      deploy:
+        type: boolean
+        description: Deploy JRE to Maven and Docker Repositories
+        required: true
+        default: false
+
+  workflow_dispatch:
+    inputs:
+      deploy:
+        type: boolean
+        description: Deploy JRE to Maven and Docker Repositories
+        required: true
+        default: false
+
+jobs:
+  build-jre:
+    name: Build JRE
+
+    runs-on: ${{ matrix.os }}
+
+    permissions:
+      contents: write
+      packages: write
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Read JDK Version
+      run: |
+        echo "JDK_VERSION=$(cat .java-version)" >> $GITHUB_ENV
+        echo "JDK_VERSION=$(cat .java-version)" >> $env:GITHUB_ENV
+
+    - name: Set up JDK ${{ env.JDK_VERSION }}
+      uses: actions/setup-java@v4
+      with:
+        java-version-file: .java-version
+        distribution: temurin
+        java-package: jdk
+        server-id: github
+        settings-path: ${{ github.workspace }}
+
+    - name: Build Linux JRE ${{ env.JDK_VERSION }}
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        jlinkModules=$(cat modules.txt | tr '\n' ',')
+        jlink --strip-debug --no-header-files --no-man-pages --add-modules $jlinkModules --output jre-linux
+        JRE_VERSION=$(echo "${{ env.JDK_VERSION }}" | sed 's/+/_/g')
+        if [ "${GITHUB_REF##*/}" != "${{ github.event.repository.default_branch }}" ]; then
+          JRE_VERSION=${JRE_VERSION}-SNAPSHOT
+        fi
+        echo "JRE_VERSION=${JRE_VERSION}" >> $GITHUB_ENV
+        echo "JRE_OS_NAME=linux">>${GITHUB_ENV}
+        cd jre-linux/ && zip -r ../metricshub-jre-linux.zip .
+
+    - name: Build Windows JRE ${{ env.JDK_VERSION }}
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $jlinkModules=(Get-Content modules.txt) -join ','
+        jlink --strip-debug --no-header-files --no-man-pages --add-modules $jlinkModules --output jre-windows
+        $JRE_VERSION = $env:JDK_VERSION -replace '\+', '_'
+        if (($env:GITHUB_REF -split '/' | Select-Object -Last 1) -ne '${{ github.event.repository.default_branch }}') {
+          $JRE_VERSION = "${JRE_VERSION}-SNAPSHOT"
+        }
+        echo "JRE_VERSION=$JRE_VERSION" >> $env:GITHUB_ENV
+        echo "JRE_OS_NAME=windows" >> $env:GITHUB_ENV
+        Compress-Archive -Path jre-windows\* -DestinationPath metricshub-jre-windows.zip
+
+    - name: Attach JRE Archive to the Build
+      uses: actions/upload-artifact@v4
+      with:
+        name: metricshub-jre-${{ env.JRE_VERSION }}-${{ env.JRE_OS_NAME }}
+        path: metricshub-jre-${{ env.JRE_OS_NAME }}.zip
+
+    - name: Maven Deploy ${{ env.JRE_VERSION }}
+      id: perform
+      if: ${{ inputs.deploy }}
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+      run: |
+        mvn deploy:deploy-file -s "${{ github.workspace }}/settings.xml" "-DrepositoryId=github" "-Durl=https://maven.pkg.github.com/${{ env.GITHUB_REPOSITORY }}" "-Dfile=metricshub-jre-${{ env.JRE_OS_NAME }}.zip" "-DgroupId=org.sentrysoftware" "-DartifactId=metricshub-jre-${{ env.JRE_OS_NAME }}" "-Dversion=${{ env.JRE_VERSION }}" "-Dpackaging=jlink" "-Ddescription=MetricsHub JRE for ${{ runner.os }}"
+
+    - name: Get Deployed Package Version ID from Versions
+      id: version-id
+      run: |
+        curl -X GET -H "Authorization: Bearer ${{env.GITHUB_TOKEN}}" https://api.github.com/orgs/${{ env.GITHUB_ORGANIZATION }}/packages/maven/org.sentrysoftware.metricshub-jre-${{ env.JRE_OS_NAME }}/versions >> $HOME/versionIds.json
+        echo "versionId=$(grep -B1 '"name": "${{ env.JRE_VERSION }}"' $HOME/versionIds.json | grep '"id":' | awk -F': ' '{print $2}' | tr -d ',')" >> $GITHUB_OUTPUT
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+        GITHUB_ORGANIZATION: ${{ github.repository_owner }}
+      if: always() && (steps.perform.outcome == 'failure')
+
+    - name: Deployed Version ID
+      run: echo "The deployed Version ID is ${{ steps.version-id.outputs.versionId }}"
+      if: always() && (steps.perform.outcome == 'failure')
+
+    - name: Package ${{ env.JRE_VERSION }} removal on failure
+      uses: actions/delete-package-versions@v4
+      with:
+        package-version-ids: ${{ steps.version-id.outputs.versionId }}
+        package-name: org.sentrysoftware.metricshub-jre-${{ env.JRE_OS_NAME }}
+        package-type: maven
+      if: always() && (steps.perform.outcome == 'failure') && (steps.version-id.outputs.versionId != '')
+
+  build-jre-docker:
+    name: Build JRE (docker)
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    -
+      name: Login to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    -
+      # Add support for more platforms with QEMU (optional)
+      # https://github.com/docker/setup-qemu-action
+      name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
+    - name: Set up Docker
+      uses: docker/setup-buildx-action@v3
+
+    -
+      # Docker Images Does Not Contains the plus (+) sign
+      # Must be replaced with underscore (_)
+      name: Prepare Environment Variables
+      run: |
+        export JDK_VERSION=$(cat .java-version)
+        echo "JDK_VERSION=${JDK_VERSION}" | sed 's/+/_/g' >> $GITHUB_ENV
+        echo "REPO_NAME=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+    - name: Build and Push ${{ env.JDK_VERSION }}
+      id: push
+      uses: docker/build-push-action@v6
+      with:
+        build-args: |
+          JDK_VERSION=${{ env.JDK_VERSION }}
+        platforms: linux/amd64,linux/arm64
+        push: ${{ inputs.deploy }}
+        tags: |
+          ghcr.io/${{ env.REPO_NAME }}:latest
+          ghcr.io/${{ env.REPO_NAME }}:${{ env.JDK_VERSION }}
+
+    - name: Delete Docker Image on Failure
+      uses: chipkent/action-cleanup-package@v1.0.1
+      with:
+        package-name: ${{ github.event.repository.name }}
+        tag: ghcr.io/${{ env.REPO_NAME }}:latest,ghcr.io/${{ env.REPO_NAME }}:${{ env.JDK_VERSION }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+      if: always() && (steps.push.outcome == 'failure')

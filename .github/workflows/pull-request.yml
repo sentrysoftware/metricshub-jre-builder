@@ -1,0 +1,12 @@
+name: Pull Request
+
+on:
+  pull_request:
+    branches: [ 'main' ]
+
+jobs:
+  build-deploy:
+    name: Build and Deploy
+    uses: ./.github/workflows/build-deploy.yml
+    with:
+      deploy: false

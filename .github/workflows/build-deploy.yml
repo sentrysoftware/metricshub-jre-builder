@@ -166,7 +166,7 @@ jobs:
           ghcr.io/${{ env.REPO_NAME }}:${{ env.JDK_VERSION }}
 
     - name: Delete Docker Image on Failure
-      uses: chipkent/action-cleanup-package@v1.0.1
+      uses: chipkent/action-cleanup-package@v1.0.3
       with:
         package-name: ${{ github.event.repository.name }}
         tag: ghcr.io/${{ env.REPO_NAME }}:latest,ghcr.io/${{ env.REPO_NAME }}:${{ env.JDK_VERSION }}
